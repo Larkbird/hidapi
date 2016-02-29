@@ -252,6 +252,27 @@ static HANDLE open_device(const char *path, BOOL enumerate)
 			0);
 	}
 
+	if (handle == INVALID_HANDLE_VALUE) {
+		WCHAR *msg;
+
+		FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+			FORMAT_MESSAGE_FROM_SYSTEM |
+			FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL,
+			GetLastError(),
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+	#ifdef _MSC_VER
+			(LPWSTR)&msg, 0/*sz*/,
+	#else
+			/* mingw gcc -pedantic warning fix? */
+			(LPVOID)&msg, 0/*sz*/,
+	#endif
+			NULL);
+		fprintf(stderr, "HIDAPI error in open_device with path %s: %ls\n",
+			path, msg);
+		LocalFree(msg);
+	}
+
 	return handle;
 }
 
